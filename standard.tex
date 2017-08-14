@@ -1,0 +1,686 @@
+% \long allows the input to span blank lines
+\long\def\ignore#1{}
+
+% Ensure that we are being run with XeTeX
+\ifdefined\XeTeXversion\else
+\errmessage{%
+crash^^0a
+============================================================^^0a
+ERROR: This document requires XeTeX^^0a
+============================================================}%
+\fi
+
+\def\shell#1{%
+\ifnum\shellescape=1
+\immediate\write18{#1}%
+\else
+\errmessage{%
+crash^^0a
+============================================================^^0a
+ERROR: This file requires the -shell-escape flag^^0a
+============================================================}%
+\fi
+}%
+
+% Plain TeX chooses to leave the definition of \\ to the user. The most
+% sensible definition for \\ is as a literal backslash character, so define it
+% as such.
+
+\def\\{\char`\\}%
+
+% The null character ^^00 can be very useful as a sentinel marker when
+% processing token lists. By default we cannot use ^^00 because Plain TeX
+% assigns it a catcode of 9, which causes it to be completely ignored in all
+% cases. Here we give it a catcode of 12 instead, making it usable.
+
+\catcode`\^^00=12
+
+% The @ symbol is intended be used as a prefix for internal macros. For
+% example, \@rawmunch is prefixed with @ because it is not intended to be
+% called by the user. At the bottom of this source file the catcode for @ is
+% set back to 12.
+
+\catcode`\@=11
+
+% TeX usually eats and ignores newlines in the input file, making it hard to
+% format message with \errmessage. This setting allows us to type ^^0a to get
+% newlines where we want them.
+
+\newlinechar="0A
+
+% The \prot macro prevents the redefinition of names. One can do
+% \prot\def\foo{text here}, and a crash will result if \foo is already
+% defined. One may also use constructs like \prot\chardef\foo,
+% \prot\countdef\foo, and other such things.
+
+\def\prot#1#2{%
+\ifdefined#2
+\errmessage{%
+crash^^0a
+============================================================^^0a
+ERROR: The control sequence \string#2 is already defined^^0a
+============================================================}%
+\fi
+#1#2%
+}%
+
+% The standard page size is 8.5in by 11in, with an hsize and vsize of 6.5in
+% and 9in. But this is too big for 10pt fonts. If we scale each of these
+% values down by 10/12 then 10pt is made to look like 12pt font, at least in
+% terms of its ratio to the page.
+
+\pdfpagewidth=7.0833in
+\pdfpageheight=9.1667in
+\hsize=5.4167in
+\vsize=7.5000in
+\hoffset=-0.1667in
+\voffset=-0.1667in
+
+% Prevent widows and clubs at all costs.
+\widowpenalty=10000
+\clubpenalty=10000
+
+% +----------------------+
+% | TeX Assembler Macros |
+% +----------------------+
+
+% ===[ Stack pointers ]===
+
+% These macros use the letters c, d, s, m, b, and t to mean count, dimen,
+% skip, muskip, box, and toks. Recall that "100 is hex 0x100, and not decimal
+% 100. Plain TeX was written to use registers 0x00 through 0xFF, so using
+% 0x100 and up leaves us clear of any interference.
+
+% Recall that \countdef\spc="100 defines \spc as another name for register
+% 0x100, while \spc="105 puts the value 0x105 into that register.
+
+\countdef\spc = "100 % counter stack pointer
+\countdef\spd = "101 % dimen   stack pointer
+\countdef\sps = "102 % skip    stack pointer
+\countdef\spm = "103 % muskip  stack pointer
+\countdef\spt = "104 % toks    stack pointer
+\countdef\spb = "105 % box     stack pointer
+\spc="105
+
+\def\cref#1{\count\numexpr\spc - #1\relax}%
+\def\dref#1{\dimen\numexpr\spd - #1\relax}%
+\def\sref#1{\skip\numexpr\sps - #1\relax}%
+\def\mref#1{\muskip\numexpr\spm - #1\relax}%
+\def\tref#1{\toks\numexpr\spt - #1\relax}%
+\def\bref#1{\numexpr\spb - #1\relax}%
+
+\def\pushc#1{\global\cref{-1}=#1\global\advance\spc by 1\relax}%
+\def\pushd#1{\global\dref{-1}=#1\global\advance\spd by 1\relax}%
+\def\pushs#1{\global\sref{-1}=#1\global\advance\sps by 1\relax}%
+\def\pushm#1{\global\mref{-1}=#1\global\advance\spm by 1\relax}%
+\def\pusht#1{\global\tref{-1}={#1}\relax\global\advance\spt by 1\relax}%
+\def\pushb#1{%
+\global\setbox\numexpr\spb + 1\relax=#1\global\advance\spb by 1\relax}%
+
+\def\popc#1{\global\advance\spc by -#1\relax}%
+\def\popd#1{\global\advance\spd by -#1\relax}%
+\def\pops#1{\global\advance\sps by -#1\relax}%
+\def\popm#1{\global\advance\spm by -#1\relax}%
+\def\popt#1{\global\advance\spt by -#1\relax}%
+\def\popb#1{\global\advance\spb by -#1\relax}%
+
+\def\flusht{\the\tref0\popt1\relax}%
+\def\flushc{\number\cref0\popc1\relax}%
+
+% Declares a new var, \var\count\foo
+
+\def\var#1#2{%
+\ifx#1\count  \advance \spc by 1 \prot\countdef#2  = \spc \fi
+\ifx#1\dimen  \advance \spd by 1 \prot\dimendef#2  = \spd \fi
+\ifx#1\skip   \advance \sps by 1 \prot\skipdef#2   = \sps \fi
+\ifx#1\muskip \advance \spm by 1 \prot\muskipdef#2 = \spm \fi
+\ifx#1\toks   \advance \spt by 1 \prot\toksdef#2   = \spt \fi
+\ifx#1\box    \advance \spb by 1 \prot\chardef#2   = \spb \fi
+}%
+
+% Declares and sets a new var, \var\count\foo=7
+
+\def\ivar#1#2{%
+\var#1#2%
+\ifx#1\count#2\fi
+\ifx#1\dimen#2\fi
+\ifx#1\skip#2\fi
+\ifx#1\muskip#2\fi
+\ifx#1\toks#2\fi
+\ifx#1\box\setbox#2\fi
+}%
+
+% +--------------------------+
+% | Misc Mathematical Macros |
+% +--------------------------+
+
+\def\m#1{\mskip#1mu}
+\def\n#1{\mskip-#1mu}
+
+% The \o and \c macros define numerically ordered open/close commands. These
+% are easier than remembered the ordering of \bigl-\Biggl. The levels simply
+% run from 0-4. Example: % \o2( x^2 \c2)
+
+\def\o#1#2{%
+\ifx#10#2\fi
+\ifx#11\bigl#2\fi
+\ifx#12\Bigl#2\fi
+\ifx#13\biggl#2\fi
+\ifx#14\Biggl#2\fi
+}
+
+\def\c#1#2{%
+\ifx#10#2\fi
+\ifx#11\bigr#2\fi
+\ifx#12\Bigr#2\fi
+\ifx#13\biggr#2\fi
+\ifx#14\Biggr#2\fi
+}
+
+% Alignments often need some extra vertical breahting room.
+
+\def\ccr{\cr\noalign{\vskip4pt}}
+
+% Sometimes we need to cramp a formula to make it fit on a line. Example:
+% \mathcramp0.8, \mathcramp0.3, etc...
+
+\def\mathcramp#1{%
+\thinmuskip=#1\thinmuskip
+\medmuskip=#1\medmuskip
+\thickmuskip=#1\thickmuskip
+}%
+
+% Make the "*" equivalent to \dot
+\mathcode`\*="2201
+
+\let\x=\times
+\let\p=\partial
+\let\del=\nabla
+
+% Units of measure. Example: 10\s{in}
+
+\def\s#1{\kern 1.75pt {\rm #1}} 
+
+% I'm so \over it
+
+\def\q#1#2{{{#1} \over {#2}}}%
+
+% I replace Knuth's \{ in \cases with my own \lbrace because I redefine \{ to
+% include a \left marker further down.
+
+\def\cases#1{\left\lbrace\,\vcenter{\normalbaselines\m@th
+    \ialign{$##\hfil$&\quad##\hfil\crcr#1\crcr}}\right.}%
+
+% This is just like \matrix, but it sets \displaystyle on every cell
+
+\def\dmatrix#1{\null\,\vcenter{\normalbaselines\m@th
+    \ialign{%
+      \hfil$\displaystyle ##$\hfil&&\quad\hfil$\displaystyle ##$\hfil\crcr
+      \mathstrut\crcr\noalign{\kern-\baselineskip}
+      #1\crcr\mathstrut\crcr\noalign{\kern-\baselineskip}}}\,}%
+
+\def\ihat{{\mb{\hat \imath}}}%
+\def\jhat{{\mb{\hat \jmath}}}%
+\def\khat{{\mb{\hat k}}}%
+
+\def\vlen#1{\left|\left|#1\right|\right|}%
+
+\def\norm{\mathop{\rm norm}\nolimits}%
+\def\sign{\mathop{\rm sign}\nolimits}%
+\def\len{\mathop{\rm len}\nolimits}%
+\def\abs{\mathop{\rm abs}\nolimits}%
+\def\div{\mathop{\rm div}\nolimits}%
+\def\grad{\mathop{\rm grad}\nolimits}%
+\def\curl{\mathop{\rm curl}\nolimits}%
+\def\arccosh{\mathop{\rm arccosh}\nolimits}%
+\def\arcsinh{\mathop{\rm arcsinh}\nolimits}%
+\def\ach{\mathop{\rm arcch}\nolimits}%
+\def\ash{\mathop{\rm arcsh}\nolimits}%
+\def\ch{\mathop{\rm ch}\nolimits}%
+\def\sh{\mathop{\rm sh}\nolimits}%
+
+% The d'Alembertian operator. How is this not core!?
+
+\def\dal{{\raise1.0pt\hbox{${\XeTeXmathchar"1\xitsfam"29E0\m1}^2$}}}
+
+% Use \cs a_x^2 instead of a_x^2. It's almost the same, but it looks slightly
+% better to not have the subscript and superscript vertically aligned.
+
+\def\cs#1_#2^#3{{#1}_{#2}^{\mskip3.5mu #3}}%
+
+% Plain TeX's math skip macros are ,>; but I'm redefining them to be ,;: so
+% that we can have \> for other purposes. Plus ,;: is a more logical
+% progression anyway. Use \? for skips that would make the reader ask "is that
+% even really there?"
+
+\def\?{\mskip0.5\thinmuskip}%
+\def\,{\mskip\thinmuskip}%
+\def\;{\mskip\medmuskip}%
+\def\:{\mskip\thickmuskip}%
+
+% Negative skips, \!, \!; \!:, and \!?
+
+\def\!#1{%
+\ifnum`#1=`\?
+\mskip-0.5\thinmuskip
+\else\ifnum`#1=`\,
+\mskip-\thinmuskip
+\else\ifnum`#1=`\;
+\mskip-\medmuskip
+\else\ifnum`#1=`\:
+\mskip-\thickmuskip
+\fi\fi\fi\fi
+}%
+
+% Parenthesis, square braces, curly brackets, and chevrons. Plain TeX already
+% defines some of these macros in slightly less useful ways, so we can't
+% always use \prot here.
+
+\def\({\left(}%
+\def\){\right)}%
+
+\def\[{\left[}%
+\def\]{\right]}%
+
+\def\{{\left\lbrace}%
+\def\}{\right\rbrace}%
+
+\def\<{\left<}%
+\def\>{\right>}%
+
+\def\ket#1{\left|\?\sv{#1}\?\right>}%
+\def\bra#1{\left<\?\sv{#1}\?\right|}%
+\def\braket#1#2{\left<\?\sv{#1}\?\middle|\?\sv{#2}\?\right>}%
+
+% +-------------+
+% | Misc Macros |
+% +-------------+
+
+\prot\def\dk#1{{\bf #1}}
+\prot\def\ek#1{{\it #1}}
+\prot\def\sk#1{{\sl #1}}
+
+\prot\def\hs{\mskip40mu}
+\prot\def\vs{\noalign{\vskip3pt}}
+
+\prot\def\R#1{#1}
+
+\def\unroll#1{\copy#1\vskip-\ht#1}%
+
+% This macro comes from transforms.tex in the XeTeX docs
+
+\def\rotate#1#2{{\setbox0=\hbox{#1}\rlap{\kern0.5\wd0
+  \dimen0=\ht0 \advance\dimen0 by -\dp0
+  \raise0.5\dimen0\hbox{\special{x:gsave}\special{x:rotate #2}}}%
+  \box0 \special{x:grestore}}}%
+
+% +---------------------+
+% | Page number control |
+% +---------------------+
+
+\headline={\hss{\bf Page \folio}}%
+\footline={\hfil}%
+\def\nopagenumbers{\headline{\hfil}}%
+
+\def\sv#1{{\mathbold=1\fam\bffam #1}}%
+
+% These values are generated by taking 1.2^n * 1000 for n=0,1,2,...,9
+
+\def\magstep#1{%
+\ifcase#1
+1000\or 1200\or 1440\or 1728\or 2074\or 2488\or 2986\or 3583\or 4300\or 5160%
+\fi\relax
+}%
+
+% +---------------------+
+% | Fonts & Font Charts |
+% +---------------------+
+
+% The plain.tex file suggests these three fonts for titles. In plain.tex
+% cmtt10 is set to \magstep2, but this leaves it looking smaller than the
+% other two. Giving cmtt10 a scale of 1625 instead of \magstep2 makes the
+% X-heights approximately equal in all three fonts.
+
+\font\titlefontrm=cmr7 scaled 2000
+\font\titlefonttt=cmtt10 scaled 1400
+\font\titlefontbf=cmssbx10 scaled 1400
+
+% Plain TeX has the a-z and A-Z math characters in class 0. Having them in
+% class 0 forces us to use the font in family 1 for every math letter in a
+% given formula, and the font in family 1 is essentially always going to be
+% cmmi{10,7,5}. However, we might want to dynamically mix math characters from
+% various fonts, even in the same display. One method might be to reassign
+% these characters to class 7 so that they can use the class 7 + \fam mapping
+% mechanism. Unfortunately that breaks accents like \hat and \dot and such,
+% because they rely on class 7 being perpetually mapped to something like
+% cmr10, which has a very different character table compared to cmmi10.
+
+\ivar\count\mathbold=0
+
+\def\bm{\mathbold=1\fam\cmmibfam}%
+\def\mb#1{{\bm #1}}%
+
+% Math Character Classes (TeX Book Chapter 17, "More about Math")
+% 0: Ordinary
+% 1: Large operator
+% 2: Binary operation
+% 3: Relation
+% 4: Opening
+% 5: Closing
+% 6: Punctuation
+% 7: Variable family via \fam
+
+% \@mathchar
+% #1: The " character
+% #2: Class
+% #3: Family
+% #4: Char
+% #5: Char
+
+\def\@mathchar#1#2#3#4#5{%
+\ifnum#3=1
+\ifnum\mathbold=1
+\mathchar\numexpr"1000 * "#2 + "100 * \cmmibfam + "10 * "#4 + "#5\relax
+\else
+\mathchar\numexpr"1000 * "#2 + "100 * "#3 + "10 * "#4 + "#5\relax
+\fi
+\else
+\ifnum\mathbold=1
+\mathchar\numexpr"1000 * "#2 + "100 * \cmbsyfam + "10 * "#4 + "#5\relax
+\else
+\mathchar\numexpr"1000 * "#2 + "100 * "#3 + "10 * "#4 + "#5\relax
+\fi
+\fi
+}%
+
+% \@mathaccent
+% #1: The " character
+% #2: Class
+% #3: Family
+% #4: Char
+% #5: Char
+
+\def\@mathaccent#1#2#3#4#5{%
+\ifnum\mathbold=1
+\mathaccent\numexpr"1000 * "#2 + "100 * \bffam + "10 * "#4 + "#5\relax
+\else
+\mathaccent\numexpr"1000 * "#2 + "100 * "#3 + "10 * "#4 + "#5\relax
+\fi
+}%
+
+\def\acute{\@mathaccent"0013 }%
+\def\grave{\@mathaccent"0012 }%
+\def\ddot{\@mathaccent"007F }%
+\def\tilde{\@mathaccent"007E }%
+\def\bar{\@mathaccent"0016 }%
+\def\breve{\@mathaccent"0015 }%
+\def\check{\@mathaccent"0014 }%
+\def\hat{\@mathaccent"005E }%
+\def\dot{\@mathaccent"005F }%
+% Why is this one disabled?
+%\def\vec{\@mathaccent"017E }%
+
+\def\alpha{\@mathchar"010B}%
+\def\beta{\@mathchar"010C}%
+\def\gamma{\@mathchar"010D}%
+\def\delta{\@mathchar"010E}%
+\def\epsilon{\@mathchar"010F}%
+\def\zeta{\@mathchar"0110}%
+\def\eta{\@mathchar"0111}%
+\def\theta{\@mathchar"0112}%
+\def\iota{\@mathchar"0113}%
+\def\kappa{\@mathchar"0114}%
+\def\lambda{\@mathchar"0115}%
+\def\mu{\@mathchar"0116}%
+\def\nu{\@mathchar"0117}%
+\def\xi{\@mathchar"0118}%
+\def\pi{\@mathchar"0119}%
+\def\rho{\@mathchar"011A}%
+\def\sigma{\@mathchar"011B}%
+\def\tau{\@mathchar"011C}%
+\def\upsilon{\@mathchar"011D}%
+\def\phi{\@mathchar"011E}%
+\def\chi{\@mathchar"011F}%
+\def\psi{\@mathchar"0120}%
+\def\omega{\@mathchar"0121}%
+\def\varepsilon{\@mathchar"0122}%
+\def\vartheta{\@mathchar"0123}%
+\def\varpi{\@mathchar"0124}%
+\def\varrho{\@mathchar"0125}%
+\def\varsigma{\@mathchar"0126}%
+\def\varphi{\@mathchar"0127}%
+
+\def\imath{\@mathchar"017B}%
+\def\jmath{\@mathchar"017C}%
+
+\newfam\cmmibfam
+\newfam\cmbsyfam
+\newfam\msbmfam
+\newfam\msamfam
+\newfam\esintfam
+\newfam\lmmfam
+\newfam\xitsfam
+\newfam\asanafam
+
+\def\bb{\fam\msbmfam\msbm}%
+\font\msbm=msbm10
+\font\tenmsbm=msbm10
+\font\sevenmsbm=msbm7
+\font\fivemsbm=msbm5
+\textfont\msbmfam=\tenmsbm
+\scriptfont\msbmfam=\sevenmsbm
+\scriptscriptfont\msbmfam=\fivemsbm
+
+\font\msam=msam10
+\font\tenmsam=msam10
+\font\sevenmsam=msam7
+\font\fivemsam=msam5
+\textfont\msamfam=\tenmsam
+\scriptfont\msamfam=\sevenmsam
+\scriptscriptfont\msamfam=\fivemsam
+
+\font\esint=esint10
+\textfont\esintfam=\esint
+\scriptfont\esintfam=\esint
+\scriptscriptfont\esintfam=\esint
+
+\font\tencmmib=cmmib10
+\font\sevencmmib=cmmib7
+\font\fivecmmib=cmmib5
+\skewchar\tencmmib='177
+\skewchar\sevencmmib='177
+\skewchar\fivecmmib='177
+\textfont\cmmibfam=\tencmmib
+\scriptfont\cmmibfam=\sevencmmib
+\scriptscriptfont\cmmibfam=\fivecmmib
+
+\font\tencmbsy=cmbsy10
+\font\sevencmbsy=cmbsy7
+\font\fivecmbsy=cmbsy5
+\skewchar\tencmbsy='60
+\skewchar\sevencmbsy='60
+\skewchar\fivecmbsy='60
+\textfont\cmbsyfam=\tencmbsy
+\scriptfont\cmbsyfam=\sevencmbsy
+\scriptscriptfont\cmbsyfam=\fivecmbsy
+
+% Should this family have a skewchar?
+\ifdefined\XeTeXversion
+\font\tenxits="XITS Math" at 10pt
+\font\sevenxits="XITS Math" at 7pt
+\font\fivexits="XITS Math" at 5pt
+\textfont\xitsfam=\tenxits
+\scriptfont\xitsfam=\sevenxits
+\scriptscriptfont\xitsfam=\fivexits
+\fi
+
+% Should this family have a skewchar?
+\ifdefined\XeTeXversion
+\font\tenlmm="Latin Modern Math" at 10pt
+\font\sevenlmm="Latin Modern Math" at 7pt
+\font\fivelmm="Latin Modern Math" at 5pt
+\textfont\lmmfam=\tenlmm
+\scriptfont\lmmfam=\sevenlmm
+\scriptscriptfont\lmmfam=\fivelmm
+\fi
+
+% Should this family have a skewchar?
+\ifdefined\XeTeXversion
+\font\tenasana="Asana Math" at 10pt
+\font\sevenasana="Asana Math" at 7pt
+\font\fiveasana="Asana Math" at 5pt
+\textfont\asanafam=\tenasana
+\scriptfont\asanafam=\sevenasana
+\scriptscriptfont\asanafam=\fiveasana
+\fi
+
+\ifdefined\XeTeXversion
+\def\iint{\XeTeXmathchar"1\lmmfam"222C\nolimits}%
+\def\iiint{\XeTeXmathchar"1\lmmfam"222D\nolimits}%
+\def\oint{\XeTeXmathchar"1\lmmfam"222E\nolimits}%
+\def\oiint{\XeTeXmathchar"1\lmmfam"222F\nolimits}%
+\def\oiiint{\XeTeXmathchar"1\lmmfam"2230\nolimits}%
+\def\ointcw{\XeTeXmathchar"1\lmmfam"2232\nolimits}%
+\def\ointccw{\XeTeXmathchar"1\lmmfam"2233\nolimits}%
+\else
+\def\iint{\mathchar\numexpr"1003 + "100 * \esintfam\relax\nolimits}%
+\def\iiint{\mathchar\numexpr"1005 + "100 * \esintfam\relax\nolimits}%
+\def\oint{\mathchar\numexpr"100B + "100 * \esintfam\relax\nolimits}%
+\def\oiint{\mathchar\numexpr"100D + "100 * \esintfam\relax\nolimits}%
+\def\ointcw{\mathchar\numexpr"1017 + "100 * \esintfam\relax\nolimits}%
+\def\ointccw{\mathchar\numexpr"1019 + "100 * \esintfam\relax\nolimits}%
+\fi
+
+% \fontchart
+% #1: Font name
+% #2: Chart label
+
+\def\@fcb{{\fontchartfont\char\cref1}\global\advance\cref1 by 1\relax}%
+\def\@frs{{\rm\number\cref0}\global\advance\cref0 by 1\relax}%
+\def\fontchart#1#2{
+\font\fontchartfont=#1
+\pushc{0}%
+\pushc{0}%
+\vbox{
+\hbox{\bf #2 [#1]}%
+\kern6pt
+\hrule
+\vskip6pt
+\halign{
+\vrule height 8.5pt depth 9.5pt width 0pt
+##\quad&
+\hfil\enskip##\enskip\hfil&\hfil\enskip##\enskip\hfil&%
+\hfil\enskip##\enskip\hfil&\hfil\enskip##\enskip\hfil&%
+\hfil\enskip##\enskip\hfil&\hfil\enskip##\enskip\hfil&%
+\hfil\enskip##\enskip\hfil&\hfil\enskip##\enskip\hfil&%
+\hfil\enskip##\enskip\hfil&\hfil\enskip##\enskip\hfil&%
+\hfil\enskip##\enskip\hfil&\hfil\enskip##\enskip\hfil&%
+\hfil\enskip##\enskip\hfil&\hfil\enskip##\enskip\hfil&%
+\hfil\enskip##\enskip\hfil&\hfil\enskip##\enskip\hfil\cr
+&0&1&2&3&4&5&6&7&8&9&A&B&C&D&E&F\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+\@frs&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&%
+\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb&\@fcb\cr
+}}}%
+
+\def\cmcharts{
+\fontchart{cmr10}{Roman}\vfill\eject
+\fontchart{cmbx10}{Roman Bold}\vfill\eject
+\fontchart{cmsl10}{Roman Slanted}\vfill\eject
+\fontchart{cmss10}{Sans Serif}\vfill\eject
+\fontchart{cmssbx10}{Sans Serif Bold}\vfill\eject
+\fontchart{cmti10}{Italic}\vfill\eject
+\fontchart{cmu10}{Italic Unslanted}\vfill\eject
+\fontchart{cmtt10}{Typewriter}\vfill\eject
+\fontchart{cmsltt10}{Typewriter Slanted}\vfill\eject
+\fontchart{cmmi10}{Math Italic}\vfill\eject
+\fontchart{cmmib10}{Math Italic Bold}\vfill\eject
+\fontchart{cmsy10}{Math Symbols}\vfill\eject
+\fontchart{cmbsy10}{Math Symbols Bold}\vfill\eject
+\fontchart{cmex10}{Math Extensions}\vfill\eject
+\fontchart{cmcsc10}{Caps and Small Caps}\vfill\eject
+\fontchart{cmdunh10}{Dunhill Style}\vfill\eject
+}%
+
+\def\eulercharts{
+\fontchart{eurm10}{Roman}\vfill\eject
+\fontchart{eurb10}{Roman Bold}\vfill\eject
+\fontchart{eusm10}{Script}\vfill\eject
+\fontchart{eusb10}{Script Bold}\vfill\eject
+\fontchart{eufm10}{Fraktur}\vfill\eject
+\fontchart{eufb10}{Fraktur Bold}\vfill\eject
+\fontchart{euex10}{Math Extensions}\vfill\eject
+}%
+
+\def\amscharts{
+\fontchart{msam10}{AMS Symbols Set A}\vfill\eject
+\fontchart{msbm10}{AMS Symbols Set B}\vfill\eject
+}%
+
+\def\fontcharts{%
+\cmcharts
+\eulercharts
+\amscharts
+}%
+
+%%
+%%
+%%
+
+\font\papertitlefont=cmbx12 scaled \numexpr 1400 * 10/12 \relax
+\font\paperinfofont=cmr10 scaled 800 \relax
+\font\paperinfofontsl=cmsl10 scaled 800 \relax
+\let\papersectionfont=\bf
+
+\prot\def\papertitle#1{%
+\hbox{\papertitlefont #1}%
+\vskip1pt
+\hbox to \hsize{%
+\paperinfofont
+}
+\hrule width \hsize
+}
+
+\def\paperheadingnoskip#1{%
+\leaders\hbox{}\vskip18pt plus 6pt minus 6pt
+\hbox{\papersectionfont [\hskip2pt#1\hskip2pt]}\nobreak
+}
+
+\def\paperheading#1{%
+\paperheadingnoskip{#1}
+\kern6pt\nobreak
+}
+
+% At the top of the file ``@'' is given a catcode of 11. This resets its
+% catcode back to 12, which is its original value.
+
+\catcode`\@=12

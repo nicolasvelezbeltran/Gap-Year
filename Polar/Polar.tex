@@ -1,5 +1,126 @@
 \input ../standard.tex
+        
 \papertitle{Polar Coordinates}
+
 \paperheading{Polar Vectors}
+
+Let $r(t)$ and $\theta(t)$ be functions of time. With these variables the
+position of a particle can be represented as.
+$$
+\sv r(t)
+=
+r(t) * \cos(\theta(t)) \; \ihat +
+r(t) * \sin(\theta(t)) \; \jhat
+$$
+For readability we can omit explicily writing the time parameter. With this
+omission the possition can now be written as just
+$$
+\sv r
+=
+r \cos(\theta) \; \ihat +
+r \sin(\theta) \; \jhat
+$$
+Sometimes we want to write a vector with the pair notation $(x, y)$ instead of
+using the $\ihat$ and $\jhat$ basis vectors. In this notation our expression
+becomes
+$$
+\sv r = (r \cos(\theta), r \sin(\theta))
+$$
+Which notation you use is mostly a matter of preference, but they can both be
+more or less convenient at different times. We will work with both notations
+in this paper so that we can become familiar with each of them. Let's start by
+taking a derivative
+$$
+\q{d \sv r}{dt}
+=
+\q{d}{dt}\o2(r \cos(\theta) \; \ihat\c2) +
+\q{d}{dt}\o2(r \sin(\theta) \; \jhat\c2)
+$$
+It looks like we now have to apply the product rule. Let's be extremly
+explicit about it so that we don't miss anything:
+$$
+\eqalign{
+\q{d \sv r}{dt}
+=
+&+ \q{dr}{dt} \cos(\theta) \, \ihat
++ r \q{d}{dt}\o2(\cos(\theta)\c2) \, \ihat
++ r \cos(\theta) \q{d\ihat}{dt}
+\ccr
+&+ \q{dr}{dt} \sin(\theta) \, \jhat
++ r \q{d}{dt}\o2(\sin(\theta)\c2) \, \jhat
++ r \sin(\theta) \q{d\jhat}{dt}
+}
+$$
+Recall that the basis vectors $\ihat$ and $\jhat$ are constants, so $d\ihat/dt
+= 0$ and $d\jhat/dt = 0$. When we drop these we get
+$$
+\q{d \sv r}{dt}
+=
+\q{dr}{dt} \cos(\theta) \, \ihat
++ r \q{d}{dt}\o2(\cos(\theta)\c2) \, \ihat
++ \q{dr}{dt} \sin(\theta) \, \jhat
++ r \q{d}{dt}\o2(\sin(\theta)\c2) \, \jhat
+$$
+Now let's take any derivatives involving $\cos$ and $\sin$. Recall that
+$\theta$ is actually a function of time $\theta(t)$. The derivative of
+$\sin(\theta)$ is actually the derivtive of $\sin(\theta(t))$, which requires
+the use of the chain rule and comes to $\cos(\theta(t)) * d\theta/dt$.
+$$
+\q{d \sv r}{dt}
+=
+\q{dr}{dt} \cos(\theta) \, \ihat
+- r \q{d\theta}{dt}\sin(\theta) \, \ihat
++ \q{dr}{dt} \sin(\theta) \, \jhat
++ r \q{d\theta}{dt}\cos(\theta) \, \jhat
+$$
+Now observe that we can make the following factorization
+$$
+\q{d \sv r}{dt}
+=
+\left.\q{dr}{dt}\middle(\cos(\theta) \, \ihat
++ \sin(\theta) \, \jhat\right)
++ \left.r \q{d\theta}{dt}\middle(-\sin(\theta) \, \ihat
++ \cos(\theta) \, \jhat\right)
+$$
+Observe furthermore that
+$$
+\q{1}{r}\sv r = \cos(\theta) \, \ihat + \sin(\theta) \, \jhat
+$$
+We can therefore write
+$$
+\q{d \sv r}{dt}
+=
+\q{dr}{dt}\q{1}{r}\sv r
++ \left.r \q{d\theta}{dt}\middle(-\sin(\theta) \, \ihat
++ \cos(\theta) \, \jhat\right)
+$$
+Now let's do some notational cleanup. We use Newton's notation to write $\dot
+r = dr/dt$ and $\dot\theta = d\theta/dt$. We can also give the name $\sv v$ to
+$d\sv r/dt$, since this is after all the veclotiy. Finally, the vector $\sv
+r/r$ is conventionally given the name $\sv{\hat r}$. This vector points in the
+direction of $\sv r$, but has unit length (meaning that it's length is $1$).
+With all this new notation we now have
+$$
+\sv v
+=
+\dot r \? \sv{\hat r}
++ r \dot\theta\o1(-\sin(\theta) \, \ihat + \cos(\theta) \, \jhat \, \c1)
+$$
+Moreover, the derivative $\dot\theta$ is often given the even shorter name
+$\omega$. This is called the angular velocity. Making this final replacement
+gives us
+$$
+\sv v
+=
+\dot r \? \sv{\hat r}
++ r \omega\o1(-\sin(\theta) \, \ihat + \cos(\theta) \, \jhat \, \c1)
+$$
+This expression is now fairly compact and elegant, expect for the relatively
+lengthy vector \hbox{$-\sin(\theta) \, \ihat + \cos(\theta) \, \jhat$}. I'll
+leave it to you to study this vector, discover some of its interesting
+properties, and perhaps give it a name of its own. It will also be instructive
+to take the derivtive again, but this time using the notation $\sv r = (r
+\cos(\theta), r \sin(\theta))$, with $\ihat$ and $\jhat$ left out completey.
+Try doing this as an exercise as well.
 
 \bye

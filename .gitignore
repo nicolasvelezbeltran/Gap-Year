@@ -2,10 +2,10 @@
 *.log
 *.synctex.gz
 
-jello/Jello/.vs
+jello/.vs
+
+jello/Debug
+jello/Release
 
 jello/Jello/Debug
 jello/Jello/Release
-
-jello/Jello/Jello/Debug
-jello/Jello/Jello/Release

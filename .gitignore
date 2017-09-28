@@ -2,7 +2,13 @@
 *.log
 *.synctex.gz
 
-jello/.vs
+.vs
+.suo
+
+*.exe
+*.ilk
+*.pdb
+*.VC.db
 
 jello/Debug
 jello/Release

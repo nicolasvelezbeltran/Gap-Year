@@ -4,9 +4,8 @@
 #include <windows.h>
 #include <windowsx.h>
 
-#include <GL/GL.h>
-#include "wglext.h"
 #include "glcorearb.h"
+#include "wglext.h"
 
 void GL_Init(void);
 void GL_PrintRendererInfo(void);
@@ -15,25 +14,6 @@ void GL_PrintExtensionInfo(void);
 extern PFNWGLCREATECONTEXTATTRIBSARBPROC WGLCreateContextAttribsARB;
 extern PFNWGLCHOOSEPIXELFORMATARBPROC    WGLChoosePixelFormatARB;
 extern PFNWGLSWAPINTERVALEXTPROC         WGLSwapIntervalEXT;
-
-// OpenGL 1.0
-extern PFNGLCLEARPROC       GLClear;
-extern PFNGLCLEARCOLORPROC  GLClearColor;
-extern PFNGLGETSTRINGPROC   GLGetString;
-extern PFNGLGETINTEGERVPROC GLGetIntegerv;
-
-// OpenGL 2.0
-extern PFNGLCREATESHADERPROC     GLCreateShader;
-extern PFNGLCREATEPROGRAMPROC    GLCreateProgram;
-extern PFNGLSHADERSOURCEPROC     GLShaderSource;
-extern PFNGLCOMPILESHADERPROC    GLCompileShader;
-extern PFNGLGETSHADERIVPROC      GLGetShaderiv;
-extern PFNGLGETSHADERINFOLOGPROC GLGetShaderInfoLog;
-
-// OpenGL 3.0
-extern PFNGLGETSTRINGIPROC GLGetStringi;
-
-///
 
 extern PFNGLCULLFACEPROC GLCullFace;
 extern PFNGLFRONTFACEPROC GLFrontFace;
@@ -74,7 +54,7 @@ extern PFNGLGETDOUBLEVPROC GLGetDoublev;
 extern PFNGLGETERRORPROC GLGetError;
 extern PFNGLGETFLOATVPROC GLGetFloatv;
 extern PFNGLGETINTEGERVPROC GLGetIntegerv;
-extern PFNGLPIENTRY proc GLPIENTRY ;
+extern PFNGLGETSTRINGPROC GLGetString;
 extern PFNGLGETTEXIMAGEPROC GLGetTexImage;
 extern PFNGLGETTEXPARAMETERFVPROC GLGetTexParameterfv;
 extern PFNGLGETTEXPARAMETERIVPROC GLGetTexParameteriv;
@@ -294,7 +274,7 @@ extern PFNGLCLEARBUFFERIVPROC GLClearBufferiv;
 extern PFNGLCLEARBUFFERUIVPROC GLClearBufferuiv;
 extern PFNGLCLEARBUFFERFVPROC GLClearBufferfv;
 extern PFNGLCLEARBUFFERFIPROC GLClearBufferfi;
-extern PFNGLPIENTRY proc GLPIENTRY ;
+extern PFNGLGETSTRINGIPROC GLGetStringi;
 extern PFNGLISRENDERBUFFERPROC GLIsRenderbuffer;
 extern PFNGLBINDRENDERBUFFERPROC GLBindRenderbuffer;
 extern PFNGLDELETERENDERBUFFERSPROC GLDeleteRenderbuffers;

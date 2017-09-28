@@ -15,6 +15,10 @@ extern PFNWGLCREATECONTEXTATTRIBSARBPROC WGLCreateContextAttribsARB;
 extern PFNWGLCHOOSEPIXELFORMATARBPROC    WGLChoosePixelFormatARB;
 extern PFNWGLSWAPINTERVALEXTPROC         WGLSwapIntervalEXT;
 
+// ==========
+// OpenGL 1.0
+// ==========
+
 extern PFNGLCULLFACEPROC GLCullFace;
 extern PFNGLFRONTFACEPROC GLFrontFace;
 extern PFNGLHINTPROC GLHint;
@@ -63,6 +67,11 @@ extern PFNGLGETTEXLEVELPARAMETERIVPROC GLGetTexLevelParameteriv;
 extern PFNGLISENABLEDPROC GLIsEnabled;
 extern PFNGLDEPTHRANGEPROC GLDepthRange;
 extern PFNGLVIEWPORTPROC GLViewport;
+
+// ==========
+// OpenGL 1.1
+// ==========
+
 extern PFNGLDRAWARRAYSPROC GLDrawArrays;
 extern PFNGLDRAWELEMENTSPROC GLDrawElements;
 extern PFNGLGETPOINTERVPROC GLGetPointerv;
@@ -77,10 +86,20 @@ extern PFNGLBINDTEXTUREPROC GLBindTexture;
 extern PFNGLDELETETEXTURESPROC GLDeleteTextures;
 extern PFNGLGENTEXTURESPROC GLGenTextures;
 extern PFNGLISTEXTUREPROC GLIsTexture;
+
+// ==========
+// OpenGL 1.2
+// ==========
+
 extern PFNGLDRAWRANGEELEMENTSPROC GLDrawRangeElements;
 extern PFNGLTEXIMAGE3DPROC GLTexImage3D;
 extern PFNGLTEXSUBIMAGE3DPROC GLTexSubImage3D;
 extern PFNGLCOPYTEXSUBIMAGE3DPROC GLCopyTexSubImage3D;
+
+// ==========
+// OpenGL 1.3
+// ==========
+
 extern PFNGLACTIVETEXTUREPROC GLActiveTexture;
 extern PFNGLSAMPLECOVERAGEPROC GLSampleCoverage;
 extern PFNGLCOMPRESSEDTEXIMAGE3DPROC GLCompressedTexImage3D;
@@ -90,6 +109,11 @@ extern PFNGLCOMPRESSEDTEXSUBIMAGE3DPROC GLCompressedTexSubImage3D;
 extern PFNGLCOMPRESSEDTEXSUBIMAGE2DPROC GLCompressedTexSubImage2D;
 extern PFNGLCOMPRESSEDTEXSUBIMAGE1DPROC GLCompressedTexSubImage1D;
 extern PFNGLGETCOMPRESSEDTEXIMAGEPROC GLGetCompressedTexImage;
+
+// ==========
+// OpenGL 1.4
+// ==========
+
 extern PFNGLBLENDFUNCSEPARATEPROC GLBlendFuncSeparate;
 extern PFNGLMULTIDRAWARRAYSPROC GLMultiDrawArrays;
 extern PFNGLMULTIDRAWELEMENTSPROC GLMultiDrawElements;
@@ -99,6 +123,11 @@ extern PFNGLPOINTPARAMETERIPROC GLPointParameteri;
 extern PFNGLPOINTPARAMETERIVPROC GLPointParameteriv;
 extern PFNGLBLENDCOLORPROC GLBlendColor;
 extern PFNGLBLENDEQUATIONPROC GLBlendEquation;
+
+// ==========
+// OpenGL 1.5
+// ==========
+
 extern PFNGLGENQUERIESPROC GLGenQueries;
 extern PFNGLDELETEQUERIESPROC GLDeleteQueries;
 extern PFNGLISQUERYPROC GLIsQuery;
@@ -118,6 +147,11 @@ extern PFNGLMAPBUFFERPROC GLMapBuffer;
 extern PFNGLUNMAPBUFFERPROC GLUnmapBuffer;
 extern PFNGLGETBUFFERPARAMETERIVPROC GLGetBufferParameteriv;
 extern PFNGLGETBUFFERPOINTERVPROC GLGetBufferPointerv;
+
+// ==========
+// OpenGL 2.0
+// ==========
+
 extern PFNGLBLENDEQUATIONSEPARATEPROC GLBlendEquationSeparate;
 extern PFNGLDRAWBUFFERSPROC GLDrawBuffers;
 extern PFNGLSTENCILOPSEPARATEPROC GLStencilOpSeparate;
@@ -211,12 +245,22 @@ extern PFNGLVERTEXATTRIB4UBVPROC GLVertexAttrib4ubv;
 extern PFNGLVERTEXATTRIB4UIVPROC GLVertexAttrib4uiv;
 extern PFNGLVERTEXATTRIB4USVPROC GLVertexAttrib4usv;
 extern PFNGLVERTEXATTRIBPOINTERPROC GLVertexAttribPointer;
+
+// ==========
+// OpenGL 2.1
+// ==========
+
 extern PFNGLUNIFORMMATRIX2X3FVPROC GLUniformMatrix2x3fv;
 extern PFNGLUNIFORMMATRIX3X2FVPROC GLUniformMatrix3x2fv;
 extern PFNGLUNIFORMMATRIX2X4FVPROC GLUniformMatrix2x4fv;
 extern PFNGLUNIFORMMATRIX4X2FVPROC GLUniformMatrix4x2fv;
 extern PFNGLUNIFORMMATRIX3X4FVPROC GLUniformMatrix3x4fv;
 extern PFNGLUNIFORMMATRIX4X3FVPROC GLUniformMatrix4x3fv;
+
+// ==========
+// OpenGL 3.0
+// ==========
+
 extern PFNGLCOLORMASKIPROC GLColorMaski;
 extern PFNGLGETBOOLEANI_VPROC GLGetBooleani_v;
 extern PFNGLGETINTEGERI_VPROC GLGetIntegeri_v;
